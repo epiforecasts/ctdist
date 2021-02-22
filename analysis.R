@@ -7,8 +7,9 @@ library("janitor")
 library("here")
 library("mgcv")
 library("lubridate")
+library("patchwork")
 
-processed_path <- here::here()
+processed_path <- here::here("repos", "ctdist")
 ep_raw <- readRDS(file.path(processed_path, "english_pillars_raw.rds")) %>%
   filter(!is.na(p2ch1cq), p2ch1cq > 0, p2ch1cq < 30,
          !is.na(p2ch2cq), p2ch2cq > 0, p2ch2cq < 30,
@@ -16,7 +17,7 @@ ep_raw <- readRDS(file.path(processed_path, "english_pillars_raw.rds")) %>%
   mutate(sgene_result = if_else(sgtf == 0, "positive", "negative"))
 
 vacc_raw <- readRDS(file.path(processed_path, "english_vaccinations_raw.rds"))
-en_pop <- read_excel(here::here("uk_pop.xls"),
+en_pop <- read_excel(here::here("repos", "ctdist","uk_pop.xls"),
                      sheet = "MYE1", skip = 5) %>%
   janitor::clean_names() %>%
   rename(age_group = x1) %>%
@@ -25,7 +26,7 @@ en_pop <- read_excel(here::here("uk_pop.xls"),
   select(-age_group) %>%
   select(lower_age_limit, pop = england)
 
-en_pop_l <- read_excel(here::here("uk_pop.xls"),
+en_pop_l <- read_excel(here::here("repos", "ctdist","uk_pop.xls"),
                        sheet = "MYE2 - Persons", skip = 4) %>%
   janitor::clean_names() %>%
   filter(!is.na(name)) %>%
@@ -50,7 +51,7 @@ iep <- ep_raw %>%
   summarise(ct = mean(p2ch1cq), n = n(), .groups = "drop") %>%
   filter(date_specimen < max(date_specimen) - 3)
 
-p <- ggplot(iep, aes(x = date_specimen, y = ct,
+p_ct <- ggplot(iep, aes(x = date_specimen, y = ct,
                      colour = age_group, fill = age_group)) +
   geom_smooth() +
   geom_point(alpha = 0.25, shape = 19) +
@@ -58,9 +59,10 @@ p <- ggplot(iep, aes(x = date_specimen, y = ct,
   ylab("Mean CT value") +
   theme_minimal() +
   scale_color_brewer("", palette = "Dark2") +
-  scale_fill_brewer("", palette = "Dark2")
+  scale_fill_brewer("", palette = "Dark2") +
+  coord_cartesian(xlim = c(lubridate::dmy("01-12-2020"), lubridate::dmy("21-02-2021")))
 
-ggsave(here::here("figure", "ct_age.pdf"), p, width = 7, height = 5)
+# ggsave(here::here("figure", "ct_age.pdf"), p, width = 7, height = 5)
 
 en_pop_g <- en_pop %>%
   mutate(lower_age_limit =
@@ -86,7 +88,7 @@ ivacc <- vacc_raw %>%
   inner_join(en_pop_g, by = "age_group") %>%
   mutate(cum_prop = cum / pop)
 
-p <- ggplot(ivacc, aes(x = vaccination_date + 14, y = cum_prop,
+p_vacc <- ggplot(ivacc, aes(x = vaccination_date + 14, y = cum_prop,
                        colour = age_group, fill = age_group)) +
   geom_line() +
   geom_point(alpha = 0.25, shape = 19) +
@@ -95,9 +97,10 @@ p <- ggplot(ivacc, aes(x = vaccination_date + 14, y = cum_prop,
   theme_minimal() +
   scale_color_brewer("", palette = "Dark2") +
   scale_fill_brewer("", palette = "Dark2") +
-  ylim(c(0, 1))
+  ylim(c(0, 1)) +
+  coord_cartesian(xlim = c(lubridate::dmy("01-12-2020"), lubridate::dmy("21-02-2021")))
 
-ggsave(here::here("figure", "vacc.pdf"), p, width = 7, height = 5)
+# ggsave(here::here("figure", "vacc.pdf"), p, width = 7, height = 5)
 
 en_pop_lg <- en_pop_l %>%
   mutate(lower_age_limit =
