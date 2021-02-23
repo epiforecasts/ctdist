@@ -174,7 +174,38 @@ ep_raw_vacc %>%
             uq = quantile(p2ch1cq, 0.975),
             lq = quantile(p2ch1cq, 0.025)) %>%
   ggplot(aes(x = time, y = med)) +
+  geom_errorbar(aes(ymin = lq, ymax = uq)) + 
   geom_point() + 
   geom_smooth() +
   facet_grid(sgene_result ~ age_group, scales = "free_y") +
   labs(y = "Median Ct value")
+
+
+dat <- list()
+dat$N <- nrow(ep_raw_vacc)
+dat$t <- max(ep_raw_vacc$time) + 1
+dat$AG <- length(unique(ep_raw_vacc$age_group))
+dat$time <- 0:(dat$t - 1)
+dat$tt <- ep_raw_vacc$time
+dat$agegrp <- as.numeric(ep_raw_vacc$age_group)
+dat$ct <- ep_raw_vacc$p2ch1cq
+dat$M <- ceiling(dat$t / 3)
+dat$L <- dat$t * 2
+source("~/repos/EpiEpi/R/lengthscale_prior.R")
+lsp <- get_lengthscale_prior(floor(dat$t/3), dat$t)
+dat$lengthscale_alpha <- lsp$alpha
+dat$lengthscale_beta <- lsp$beta
+
+library(rstan)
+mod <- stan_model("repos/ctdist/attempt.stan")
+
+vacc_grp <- ivacc %>%
+  select(vaccination_date, age_group, cum_prop) %>%
+  group_by(age_group) %>%
+  mutate(time = 0:(n() - 1)) %>%
+  filter(time %in% dat$time)
+
+dat$vacc_cov <- matrix(data = vacc_grp$cum_prop, nrow = dat$AG, ncol = dat$t)
+
+
+res <- rstan::sampling(mod, data = dat)
