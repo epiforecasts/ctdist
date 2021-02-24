@@ -51,7 +51,7 @@ transformed data {
 parameters {
   real<lower = 0> rho; // length scale
   real<lower = 0> alpha; // scale
-  vector[M] eta; // eta
+  vector[t] eta; // eta
   real <lower = 0> sigma;
   vector[AG] beta0;
   vector[AG] beta1;
@@ -60,8 +60,8 @@ parameters {
 
 transformed parameters {
   vector[M] diagSPD;
-  vector[M] SPD_beta;
-  vector[N] mu;
+  vector[t] SPD_beta;
+  vector[t] mu;
   
   for(m in 1:M) {
     // Spectral density calculation
