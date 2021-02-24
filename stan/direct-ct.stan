@@ -33,7 +33,7 @@ parameters {
 
 transformed parameters {
   vector[t] gp;
-  vector[t] mu;
+  vector[N] mu;
   
   // Linear model using the spectral densities
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);

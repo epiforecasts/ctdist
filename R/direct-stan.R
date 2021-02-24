@@ -22,13 +22,13 @@ dat <- list()
 dat$N <- nrow(ep_raw_vacc)
 dat$t <- max(ep_raw_vacc$time) + 1
 dat$AG <- length(unique(ep_raw_vacc$age_group))
-dat$tt <- ep_raw_vacc$time
+dat$tt <- ep_raw_vacc$time + 1
 dat$agegrp <- as.numeric(ep_raw_vacc$age_group)
 dat$ct <- ep_raw_vacc$p2ch1cq
 dat$M <- ceiling(dat$t / 3)
 dat$L <- 2
 
-# tune lengthscale of the gamma process (Joel to replace)
+# tune length scale of the gamma process (Joel to replace with his version)
 lsp <- tune_inv_gamma(floor(dat$t/3), dat$t)
 dat$lengthscale_alpha <- lsp$alpha
 dat$lengthscale_beta <- lsp$beta
@@ -37,8 +37,8 @@ dat$lengthscale_beta <- lsp$beta
 vacc_grp <- vacc_grp %>%
   select(vaccination_date, age_group, cum_prop) %>%
   group_by(age_group) %>%
-  mutate(time = 0:(n() - 1)) %>%
-  filter(time < dat$t)
+  mutate(time = 1:(n())) %>%
+  filter(time <= dat$t)
 dat$vacc_cov <- matrix(data = vacc_grp$cum_prop, nrow = dat$AG, ncol = dat$t)
 
 # Load model --------------------------------------------------------------
