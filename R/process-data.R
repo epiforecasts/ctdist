@@ -168,6 +168,3 @@ saveRDS(ep_raw_vacc_mean, here("data", "ct_summarised.rds"))
 
 # overall vaccine coverage by age
 saveRDS(ivacc, here("data", "national_vacc_coverage.rds"))
-
-
-
