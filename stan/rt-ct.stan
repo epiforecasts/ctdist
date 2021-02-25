@@ -9,11 +9,10 @@ data {
   int <lower = 1> M;
   real L;
   int tt[N]; // time of each sample
-  vector ct[N]; // count with ct value 
-  int i0;
+  vector[N] ct; // count with ct value 
   int ctmax;
-  vector ct_inf_mean[ctmax];
-  vector ct_inf_sd[ctmax];
+  vector[ctmax] ct_inf_mean;
+  vector[ctmax] ct_inf_sd;
   real lengthscale_alpha;            // alpha for gp lengthscale prior
   real lengthscale_beta;             // beta for gp lengthscale prior
 }
@@ -31,12 +30,12 @@ parameters {
 
 transformed parameters {
   vector[t] growth;
-  vector[t] infections;
+  vector[t] prob_inf;
   vector[ctmax] lrit[t - 1];
   
   // Infections from growth
   growth = update_gp(PHI, M, L, alpha, rho, eta, 0);
-  prob_inf = i0 * inv_logit(cumulative_sum(growth));
+  prob_inf = inv_logit(cumulative_sum(growth));
   prob_inf = prob_inf / sum(prob_inf);
   
   for (i in 2:t) {
@@ -55,7 +54,7 @@ model {
   eta ~ std_normal();
   
   for (n in 1:N) {
-    vector[ctmax] lps = lrit[[tt[n]]];
+    vector[ctmax] lps = lrit[tt[n]];
     for (k in 1:ctmax) {
       lps[k] += normal_lpdf(ct[n] | ct_inf_mean[k], ct_inf_sd[k]);
     }
