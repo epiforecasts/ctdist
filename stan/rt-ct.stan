@@ -6,19 +6,16 @@ functions {
 data {
   int N; // Number of ct samples
   int t;
-  int AG;
   int <lower = 1> M;
   real L;
   int tt[N]; // time of each sample
-  int agegrp[N]; // age group of each sample
-  vector[N] ct; // ct value of each sample
-  matrix[AG, t] vacc_cov; // vaccine coverage of each age group at each time point
+  vector ct[N]; // count with ct value 
   real lengthscale_alpha;            // alpha for gp lengthscale prior
   real lengthscale_beta;             // beta for gp lengthscale prior
 }
 
 transformed data {
-  matrix[t, M] PHI = setup_gp(M, L, t);  
+  matrix[t - 1, M] PHI = setup_gp(M, L, t - 1);  
 }
 
 parameters {
@@ -26,31 +23,42 @@ parameters {
   real<lower = 0> alpha; // scale
   vector[M] eta; // eta
   real <lower = 0> sigma;
-  vector[AG] beta0;
-  vector[AG] beta1;
-  vector[AG] beta2;
 }
 
 transformed parameters {
-  vector[t] growth;
+  vector[t-1] growth;
   vector[t] infections;
-  vector[N] mu;
+  vector[ct_max] rel_inf_prob[t - 1];
   
   // Infections from growth
   growth = update_gp(PHI, M, L, alpha, rho, eta, 0);
-  infections = i0 * exp(cumulative_sum(growth));
+  infections[1] = i0;
+  infections[2:t] = i0 * exp(cumulative_sum(growth));
   
+  for (i in 2:t) {
+    int s = min(1, i - ct_max);
+    rel_inf_prob[i] = infections[s:i] ./ sum(infections[s:i]);
+  }
+  
+  // Unobserved cts
+  for (i in 1:N) {
+    // product of relative inf prob for each day and expected ct on that day
+    for (i )
+    uct[i] = real_inf_prob
+  }
 }
 
 model {
   i0 ~ exp(1/1000)
-  ct ~ normal(mu, sigma);
+  for (i in max_ct_day) {
+    ct_inf[i] ~ normal(ct_inf_mean[i], ct_inf_sd[i]) T[0,];
+  }
+  for (i in 1:N) {
+    ct[i] ~ normal(uct[i], sigma);
+  }
   sigma ~ normal(0, 1) T[0,];
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
   alpha ~ normal(0, 1);
   eta ~ std_normal();
-  beta0 ~ std_normal();
-  beta1 ~ std_normal();
-  beta2 ~ std_normal();
 }
 
