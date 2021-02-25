@@ -34,8 +34,8 @@ transformed parameters {
   
   // Infections from growth
   growth = update_gp(PHI, M, L, alpha, rho, eta, 0);
-  prob_inf = inv_logit(cumulative_sum(growth));
-  prob_inf = prob_inf / sum(prob_inf);
+  prob_inf = exp(cumulative_sum(growth));
+  //prob_inf = prob_inf / sum(prob_inf);
 }
 
 model {
