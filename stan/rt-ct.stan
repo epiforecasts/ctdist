@@ -39,12 +39,13 @@ transformed parameters {
   prob_inf = prob_inf / sum(prob_inf);
   
   for (i in 2:t) {
+    int p = i - 1;
     int s = min(i, ctmax);
-    lrit[i] = rep_vector(1e-8, ctmax);
+    lrit[p] = rep_vector(1e-8, ctmax);
     for (j in 1:s) {
-      lrit[i][j] = prob_inf[i - s + 1];
+      lrit[p][j] = prob_inf[i - s + 1];
     } 
-    lrit[i] = log(lrit[i] / sum(lrit[i]));
+    lrit[p] = log(lrit[p] / sum(lrit[p]));
   }
 }
 
@@ -54,7 +55,7 @@ model {
   eta ~ std_normal();
   
   for (n in 1:N) {
-    vector[ctmax] lps = lrit[tt[n]];
+    vector[ctmax] lps = lrit[tt[n] - 1];
     for (k in 1:ctmax) {
       lps[k] += normal_lpdf(ct[n] | ct_inf_mean[k], ct_inf_sd[k]);
     }

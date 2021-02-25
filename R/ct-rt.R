@@ -9,26 +9,30 @@ options(mc.cores = 4)
 
 # Load data ---------------------------------------------------------------
 ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
-ep_vacc <- readRDS(here("data", "ct_summarised.rds"))
-vacc_grp <- readRDS(here("data", "national_vacc_coverage.rds"))
 
 # Data for stan -----------------------------------------------------------
 # subsample available data
-samples <- sample(1:nrow(ep_raw_vacc), 5000)
+samples <- sample(1:nrow(ep_raw_vacc), 500)
 ep_raw_vacc <- ep_raw_vacc[samples, ]
 
-# define stan list
+# define observations
 dat <- list()
 dat$N <- nrow(ep_raw_vacc)
-dat$t <- max(ep_raw_vacc$time) + 1
-dat$tt <- ep_raw_vacc$time + 1
+dat$t <- max(ep_raw_vacc$time) + 2
+dat$tt <- ep_raw_vacc$time + 2
 dat$ct <- ep_raw_vacc$p2ch1cq
 
+# define ct parameters
+# assume ct lower than 30 threshold for 16 days 
+# initial linear decrease followed by linear increase
+dat$ctmax <- 16
+dat$ct_inf_mean <- c(30 - 2*0:5, 20 + 1:10)
+dat$ct_inf_sd <- rep(1, 16)
 
-# gaussian process data
-dat$M <- ceiling(dat$t / 3)
+# gaussian process parameters
+dat$M <- ceiling(dat$t / 4)
 dat$L <- 2
-lsp <- tune_inv_gamma(floor(dat$t/3), dat$t)
+lsp <- tune_inv_gamma(floor(dat$t / 4), dat$t)
 dat$lengthscale_alpha <- lsp$alpha
 dat$lengthscale_beta <- lsp$beta
 
