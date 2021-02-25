@@ -37,28 +37,25 @@ transformed parameters {
   
   for (i in 2:t) {
     int s = min(1, i - ct_max);
+    rel_inf_prob[i] = rep_vector(0, ct_max);
+      for ()
     rel_inf_prob[i] = infections[s:i] ./ sum(infections[s:i]);
-  }
-  
-  // Unobserved cts
-  for (i in 1:N) {
-    // product of relative inf prob for each day and expected ct on that day
-    for (i )
-    uct[i] = real_inf_prob
   }
 }
 
 model {
   i0 ~ exp(1/1000)
-  for (i in max_ct_day) {
-    ct_inf[i] ~ normal(ct_inf_mean[i], ct_inf_sd[i]) T[0,];
-  }
-  for (i in 1:N) {
-    ct[i] ~ normal(uct[i], sigma);
-  }
   sigma ~ normal(0, 1) T[0,];
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
   alpha ~ normal(0, 1);
   eta ~ std_normal();
+  
+  for (n in 1:N) {
+    vector[K] lps = log(rel_inf_prob[[tt[n]]]);
+    for (k in 1:ct_max) {
+      lps[k] += normal_lpdf(ct[n] | ct_inf_mean[k], ct_inf_sd[i]);
+    }
+    target += log_sum_exp(lps);
+  }
 }
 
