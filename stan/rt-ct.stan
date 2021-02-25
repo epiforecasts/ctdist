@@ -41,9 +41,9 @@ transformed parameters {
   
   for (i in 2:t) {
     int s = min(1, i - ct_max);
-    rel_inf_prob[i] = rep_vector(0, ctmax);
-      for ()
-    rel_inf_prob[i] = infections[s:i] ./ sum(infections[s:i]);
+    rel_inf_prob[i] = rep_vector(1e-8, ctmax);
+    rel_inf_prob[i][s:ctmax] = infections[s:i];
+    real_inf_prob[i] = real_inf_prob[i] / sum(real_inf_prob[i]);
   }
 }
 
