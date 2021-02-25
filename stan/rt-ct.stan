@@ -36,13 +36,14 @@ transformed parameters {
   
   // Infections from growth
   growth = update_gp(PHI, M, L, alpha, rho, eta, 0);
-  infections = i0 * exp(cumulative_sum(growth));
+  prob_inf = i0 * inv_logit(cumulative_sum(growth));
+  prob_inf = prob_inf / sum(prob_inf);
   
   for (i in 2:t) {
     int s = min(i, ctmax);
     lrit[i] = rep_vector(1e-8, ctmax);
     for (j in 1:s) {
-      lrit[i][j] = infections[i - s + 1];
+      lrit[i][j] = prob_inf[i - s + 1];
     } 
     lrit[i] = log(lrit[i] / sum(lrit[i]));
   }
