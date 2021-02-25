@@ -19,7 +19,7 @@ data {
 }
 
 transformed data {
-  matrix[t - 1, M] PHI = setup_gp(M, L, t - 1);  
+  matrix[t, M] PHI = setup_gp(M, L, t);  
 }
 
 parameters {
@@ -30,22 +30,21 @@ parameters {
 }
 
 transformed parameters {
-  vector[t-1] growth;
+  vector[t] growth;
   vector[t] infections;
-  vector[ctmax] rel_inf_prob[t - 1];
+  vector[ctmax] lrit[t - 1];
   
   // Infections from growth
   growth = update_gp(PHI, M, L, alpha, rho, eta, 0);
-  infections[1] = i0;
-  infections[2:t] = i0 * exp(cumulative_sum(growth));
+  infections = i0 * exp(cumulative_sum(growth));
   
   for (i in 2:t) {
     int s = min(i, ctmax);
-    rel_inf_prob[i] = rep_vector(1e-8, ctmax);
+    lrit[i] = rep_vector(1e-8, ctmax);
     for (j in 1:s) {
-      rel_inf_prob[i][j] = infections[i - s + 1];
+      lrit[i][j] = infections[i - s + 1];
     } 
-    real_inf_prob[i] = real_inf_prob[i] / sum(real_inf_prob[i]);
+    lrit[i] = log(lrit[i] / sum(lrit[i]));
   }
 }
 
@@ -55,7 +54,7 @@ model {
   eta ~ std_normal();
   
   for (n in 1:N) {
-    vector[ctmax] lps = log(rel_inf_prob[[tt[n]]]);
+    vector[ctmax] lps = lrit[[tt[n]]];
     for (k in 1:ctmax) {
       lps[k] += normal_lpdf(ct[n] | ct_inf_mean[k], ct_inf_sd[k]);
     }
