@@ -48,11 +48,11 @@ vector update_gp(matrix PHI, int M, real L, real alpha,
   // GP in noise - spectral densities
   if (type == 0) {
     for(m in 1:M){
-      diagSPD[m] =  sqrt(spd_se(alpha, unit_rho, sqrt(lambda(L, m))));
+      diagSPD[m] = sqrt(spd_se(alpha, unit_rho, sqrt(lambda(L, m))));
     }
   }else if (type == 1) {
     for(m in 1:M){
-      diagSPD[m] =  sqrt(spd_matern(alpha, unit_rho, sqrt(lambda(L, m))));
+      diagSPD[m] = sqrt(spd_matern(alpha, unit_rho, sqrt(lambda(L, m))));
     }
   }
   SPD_eta = diagSPD .* eta;

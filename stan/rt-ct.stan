@@ -1,5 +1,6 @@
 functions {
 #include functions/gaussian_process.stan
+#include functions/ct.stan
 }
 
 // The input data is a vector 'y' of length 'N'.
@@ -25,34 +26,26 @@ parameters {
   real<lower = 0> rho; // length scale
   real<lower = 0> alpha; // scale
   vector[M] eta; // eta
-  real <lower = 0> sigma;
 }
 
 transformed parameters {
   vector[t] growth;
   vector[t] prob_inf;
-  vector[ctmax] lrit[t - 1];
   
   // Infections from growth
   growth = update_gp(PHI, M, L, alpha, rho, eta, 0);
   prob_inf = inv_logit(cumulative_sum(growth));
   prob_inf = prob_inf / sum(prob_inf);
-  
-  for (i in 2:t) {
-    int p = i - 1;
-    int s = min(i, ctmax);
-    lrit[p] = rep_vector(1e-8, ctmax);
-    for (j in 1:s) {
-      lrit[p][j] = prob_inf[i - s + 1];
-    } 
-    lrit[p] = log(lrit[p] / sum(lrit[p]));
-  }
 }
 
 model {
+  vector[ctmax] lrit[t - 1];
+  
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
   alpha ~ normal(0, 1);
   eta ~ std_normal();
+  
+  lrit = rel_inf_prob(prob_inf, ctmax, t);
   
   for (n in 1:N) {
     vector[ctmax] lps = lrit[tt[n] - 1];
