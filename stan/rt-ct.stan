@@ -40,9 +40,11 @@ transformed parameters {
   infections[2:t] = i0 * exp(cumulative_sum(growth));
   
   for (i in 2:t) {
-    int s = min(1, i - ct_max);
+    int s = min(i, ctmax);
     rel_inf_prob[i] = rep_vector(1e-8, ctmax);
-    rel_inf_prob[i][s:ctmax] = infections[s:i];
+    for (j in 1:s) {
+      rel_inf_prob[i][j] = infections[i - s + 1];
+    } 
     real_inf_prob[i] = real_inf_prob[i] / sum(real_inf_prob[i]);
   }
 }
