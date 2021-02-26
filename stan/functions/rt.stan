@@ -53,7 +53,8 @@ vector calculate_Rt(vector infections, int seeding_time,
   gt_pmf = discretised_gamma_pmf(gt_indexes, gt_mean, gt_sd, max_gt);
   // calculate Rt using Cori et al. approach
   for (s in 1:ot) {
-    infectiousness[s] += update_infectiousness(infections, gt_pmf, seeding_time, max_gt, s);
+    infectiousness[s] += update_infectiousness(infections, gt_pmf, seeding_time,
+                                               max_gt, s);
     R[s] = infections[s + seeding_time] / infectiousness[s];
   }
   if (smooth) {

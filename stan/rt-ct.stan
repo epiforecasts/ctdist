@@ -18,6 +18,9 @@ data {
   real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M;
   real L;
+  real gtm[2]; // mean and standard deviation (sd) of the mean generation time
+  real gtsd[2]; // mean and sd of the sd of the generation time
+  int gtmax; // maximum number of days to consider for the generation time
 }
 
 transformed data {
@@ -53,3 +56,11 @@ model {
                        ctmax);
 }
 
+generated quantities {
+  vector[t-7] R;
+  // sample generation time
+  real gtm_sample = normal_rng(gtm[1], gtm[2]);
+  real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
+  // calculate Rt using infections and generation time
+  R = calculate_Rt(prob_inf, 7, gtm_sample, gtsd_sample, gtmax, 1);
+}
