@@ -5,21 +5,23 @@ functions {
 
 // The input data is a vector 'y' of length 'N'.
 data {
-  int N; // Number of ct samples
-  int t;
+  int N; // number of ct samples
+  int t; // time of considered
+  int tt[N]; // time each sample taken
+  vector[N] ct; // count with ct value 
+  real init_inf_prob; // initial probability of infection
+  int ctmax; // maximum number of days post infection considered for ct values
+  vector[ctmax] ct_inf_mean; // mean CT by day since infection
+  vector[ctmax] ct_inf_sd; // standard deviation of CT by day of infection
+  real lengthscale_alpha; // alpha for gp lengthscale prior
+  real lengthscale_beta;  // beta for gp lengthscale prior
   int <lower = 1> M;
   real L;
-  int tt[N]; // time of each sample
-  vector[N] ct; // count with ct value 
-  int ctmax;
-  vector[ctmax] ct_inf_mean;
-  vector[ctmax] ct_inf_sd;
-  real lengthscale_alpha;            // alpha for gp lengthscale prior
-  real lengthscale_beta;             // beta for gp lengthscale prior
 }
 
 transformed data {
-  matrix[t, M] PHI = setup_gp(M, L, t);  
+  matrix[t - 1, M] PHI = setup_gp(M, L, t - 1);  
+  real intercept = logit(init_inf_prob);
 }
 
 parameters {
@@ -33,14 +35,14 @@ transformed parameters {
   vector[t] prob_inf;
   
   // Infections from growth
-  growth = update_gp(PHI, M, L, alpha, rho, eta, 0);
-  prob_inf = exp(cumulative_sum(growth));
-  //prob_inf = prob_inf / sum(prob_inf);
+  growth[1] = 0;
+  growth[2:t] = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  prob_inf = inv_logit(intercept + cumulative_sum(growth));
 }
 
 model {
   vector[ctmax] lrit[t - 1];
-  
+
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
   alpha ~ normal(0, 1);
   eta ~ std_normal();

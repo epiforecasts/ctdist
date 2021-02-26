@@ -1,3 +1,5 @@
+// all from here: 
+// https://github.com/epiforecasts/EpiNow2/blob/master/inst/stan/functions/gaussian_process.stan
 // eigenvalues for approximate hilbert space gp
 // see here for details: https://arxiv.org/pdf/2004.11408.pdf
 real lambda(real L, int m) {

@@ -22,17 +22,19 @@ dat$t <- max(ep_raw_vacc$time) + 2
 dat$tt <- ep_raw_vacc$time + 2
 dat$ct <- ep_raw_vacc$p2ch1cq
 
+# define initial probability of infection (1%)
+dat$init_inf_prob <- 0.001
 # define ct parameters
 # assume ct lower than 30 threshold for 16 days 
 # initial linear decrease followed by linear increase
 dat$ctmax <- 16
-dat$ct_inf_mean <- c(30 - 2*0:5, 20 + 1:10)
+dat$ct_inf_mean <- c(40 - 3*0:5, 20 + 1:10)
 dat$ct_inf_sd <- rep(1, 16)
 
 # gaussian process parameters
 dat$M <- ceiling(dat$t / 4)
 dat$L <- 2
-lsp <- tune_inv_gamma(floor(dat$t / 4), dat$t)
+lsp <- tune_inv_gamma(7, dat$t)
 dat$lengthscale_alpha <- lsp$alpha
 dat$lengthscale_beta <- lsp$beta
 
