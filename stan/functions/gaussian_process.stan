@@ -1,3 +1,5 @@
+// all from here: 
+// https://github.com/epiforecasts/EpiNow2/blob/master/inst/stan/functions/gaussian_process.stan
 // eigenvalues for approximate hilbert space gp
 // see here for details: https://arxiv.org/pdf/2004.11408.pdf
 real lambda(real L, int m) {
@@ -48,11 +50,11 @@ vector update_gp(matrix PHI, int M, real L, real alpha,
   // GP in noise - spectral densities
   if (type == 0) {
     for(m in 1:M){
-      diagSPD[m] =  sqrt(spd_se(alpha, unit_rho, sqrt(lambda(L, m))));
+      diagSPD[m] = sqrt(spd_se(alpha, unit_rho, sqrt(lambda(L, m))));
     }
   }else if (type == 1) {
     for(m in 1:M){
-      diagSPD[m] =  sqrt(spd_matern(alpha, unit_rho, sqrt(lambda(L, m))));
+      diagSPD[m] = sqrt(spd_matern(alpha, unit_rho, sqrt(lambda(L, m))));
     }
   }
   SPD_eta = diagSPD .* eta;
