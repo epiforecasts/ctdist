@@ -73,8 +73,7 @@ fit$cmdstan_diagnose()
 plot_trend <- function(fit, var, max_date = max(ep_raw_vacc$date_specimen)) {
   fit$summary(variables = var, 
               ~quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))) %>% 
-    mutate(time = 1:n(),
-           ) %>% 
+    mutate(time = 1:n()) %>% 
     ggplot() +
     aes(x = time, y = `50%`, ymin = `5%`, ymax = `95%`) + 
     geom_line(col = "lightblue", size = 1.4) +
