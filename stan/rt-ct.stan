@@ -1,6 +1,7 @@
 functions {
 #include functions/gaussian_process.stan
 #include functions/ct.stan
+#include functions/rt.stan
 }
 
 // The input data is a vector 'y' of length 'N'.
@@ -8,7 +9,7 @@ data {
   int N; // number of ct samples
   int t; // time of considered
   int tt[N]; // time each sample taken
-  vector[N] ct; // count with ct value 
+  real ct[N]; // count with ct value 
   real init_inf_prob; // initial probability of infection
   int ctmax; // maximum number of days post infection considered for ct values
   vector[ctmax] ct_inf_mean; // mean CT by day since infection
@@ -48,13 +49,7 @@ model {
   eta ~ std_normal();
   
   lrit = rel_inf_prob(prob_inf, ctmax, t);
-  
-  for (n in 1:N) {
-    vector[ctmax] lps = lrit[tt[n] - 1];
-    for (k in 1:ctmax) {
-      lps[k] += normal_lpdf(ct[n] | ct_inf_mean[k], ct_inf_sd[k]);
-    }
-    target += log_sum_exp(lps);
-  }
+  target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ct_inf_mean, ct_inf_sd,
+                       ctmax);
 }
 

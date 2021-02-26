@@ -1,11 +1,17 @@
 # Packages -----------------------------------------------------------------
-library("rstan")
-library("EpiNow2")
-library("here")
-library("dplyr")
+library(here)
+library(cmdstanr)
+library(posterior)
+library(bayesplot)
+library(EpiNow2)
+color_scheme_set("brightblue")
 
 # Set up parallel ---------------------------------------------------------
-options(mc.cores = 4)
+cores <- 4
+threads <- 4
+
+# Set up CmdStan if required ----------------------------------------------
+# install_cmdstan(cores = cores)
 
 # Load data ---------------------------------------------------------------
 ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
@@ -39,7 +45,15 @@ dat$lengthscale_alpha <- lsp$alpha
 dat$lengthscale_beta <- lsp$beta
 
 # Load model --------------------------------------------------------------
-mod <- stan_model(here::here("stan", "rt-ct.stan"))
+mod <- cmdstan_model(here("stan", "rt-ct.stan"), include_paths = "stan",
+                     cpp_options = list(stan_threads = TRUE))
 
 # Fit model ---------------------------------------------------------------
-res <- sampling(mod, data = dat)
+fit <- mod$sample(data = dat, parallel_chains = cores, 
+                  threads_per_chain = threads)
+
+# summarise fit
+fit$summary()
+
+# check
+fit$cmdstan_diagnose()
