@@ -26,6 +26,7 @@ data {
 transformed data {
   matrix[t - 1, M] PHI = setup_gp(M, L, t - 1);  
   real intercept = logit(init_inf_prob);
+  vector[ctmax] ctlgd[N] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd);
 }
 
 parameters {
@@ -52,8 +53,7 @@ model {
   eta ~ std_normal();
   
   lrit = rel_inf_prob(prob_inf, ctmax, t);
-  target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ct_inf_mean, ct_inf_sd,
-                       ctmax);
+  target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ctmax);
 }
 
 generated quantities {

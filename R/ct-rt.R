@@ -38,9 +38,9 @@ dat$init_inf_prob <- 0.01
 # define ct parameters
 # assume ct lower than 30 threshold for 16 days 
 # initial linear decrease followed by linear increase
-dat$ctmax <- 16
-dat$ct_inf_mean <- c(40 - 3*0:5, 20 + 1:10)
-dat$ct_inf_sd <- rep(1, 16)
+dat$ctmax <- 12
+dat$ct_inf_mean <- c(50 - 4*0:5, 20 + (0:5)*2)
+dat$ct_inf_sd <- rep(0.5, 12)
 
 # gaussian process parameters
 dat$M <- ceiling(dat$t / 3)
