@@ -40,7 +40,7 @@ vector[] rel_inf_prob(vector inf, int ctmax, int t) {
   }
   return(lrit);
 }
-// create mixture of days since infection
+// log likelihood across CT observations
 real ct_loglik(real[] ct, int start, int end, int[] tt, vector[] lrit,
 vector[] ctlgd, vector ldtpt, int ctmax) {
   real tar = 0;

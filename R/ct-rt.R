@@ -24,6 +24,7 @@ threads <- 4
 # install_cmdstan(cores = cores)
 
 # Load data ---------------------------------------------------------------
+# must contain, viral load or proxy, time, date
 ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
 
 # Data for stan -----------------------------------------------------------
@@ -36,11 +37,16 @@ samples <- sample(1:nrow(ep_raw_vacc), 5000)
 ep_raw_vacc <- ep_raw_vacc[samples, ]
 min_date <- min(ep_raw_vacc$date_specimen, na.rm = TRUE)
 
+# define CT post infection (loosely inspired Hay et al)
+ct <- tibble(mean = c(40 - 0:4*5, 18 + 0:10*2),
+             sd = c(rep(1, 5), rep(2, 11)))
+
 # define observations
 dat <- stan_data(ep_raw_vacc, 
-                 overall_prob = 1, 
-                 ct_mean =  c(40 - 4*0:6, 18 + (0:4)*3), 
-                 ct_sd =  rep(1, 12),
+                 load_vec = "p2ch1cq",
+                 overall_prob = 1,
+                 ct_mean =  ct$mean,
+                 ct_sd =  ct$sd,
                  dt = 30,
                  gt = get_generation_time(
                    disease = "SARS-CoV-2", source = "ganyani", max = 15

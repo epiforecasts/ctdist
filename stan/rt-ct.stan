@@ -64,6 +64,8 @@ model {
   ldtpt = rel_threshold_prob(ldtp, lrit, t, ctmax);
   // update likelihood (in parallel)
   target += reduce_sum(ct_loglik, ct, 1, tt, lrit, ctlgd, ldtpt, ctmax);
+  // if using rstan/no reduce_sum comment out L66 and use L68 instead
+  //target += ct_loglik(ct, 1, N, tt, lrit, ctlgd, ldtpt, ctmax);
 }
 
 generated quantities {
