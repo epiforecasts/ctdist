@@ -32,7 +32,7 @@ dat$tt <- ep_raw_vacc$time + 1
 dat$ct <- ep_raw_vacc$p2ch1cq
 
 # define initial probability of infection (10%)
-# I am not sure the absolute number is meaningful
+# I am not sure the absolute number is meaningful which isn't ideal
 dat$init_inf_prob <- 0.01
 
 # define ct parameters
@@ -40,12 +40,13 @@ dat$init_inf_prob <- 0.01
 # initial linear decrease followed by linear increase
 dat$ctmax <- 12
 dat$ct_inf_mean <- c(50 - 4*0:5, 20 + (0:5)*2)
-dat$ct_inf_sd <- rep(0.5, 12)
+dat$ct_inf_sd <- rep(0.5, length(dat$ct_inf_mean))
+dat$ut <- dat$t + dat$ctmax
 
 # gaussian process parameters
-dat$M <- ceiling(dat$t / 3)
+dat$M <- ceiling(dat$ut / 3)
 dat$L <- 2
-lsp <- tune_inv_gamma(7, dat$t)
+lsp <- tune_inv_gamma(7, dat$ut)
 dat$lengthscale_alpha <- lsp$alpha
 dat$lengthscale_beta <- lsp$beta
 

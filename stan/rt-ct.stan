@@ -4,10 +4,10 @@ functions {
 #include functions/rt.stan
 }
 
-// The input data is a vector 'y' of length 'N'.
 data {
   int N; // number of ct samples
   int t; // time considered
+  int ut; // time considered + ctmax
   int tt[N]; // time each sample taken
   real ct[N]; // count with ct value 
   real init_inf_prob; // initial probability of infection
@@ -24,9 +24,10 @@ data {
 }
 
 transformed data {
-  int ut = t + ctmax;
+  // set up gaussian process
   matrix[ut - 1, M] PHI = setup_gp(M, L, ut - 1);  
   real intercept = logit(init_inf_prob);
+  // calculate log density for each observed ct and day since infection
   vector[ctmax] ctlgd[N] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd);
 }
 
@@ -39,26 +40,28 @@ parameters {
 transformed parameters {
   vector[ut] growth;
   vector[ut] prob_inf;
-  
-  // Infections from growth
+  // relative probability of infection from growth
   growth[1] = 0;
   growth[2:ut] = update_gp(PHI, M, L, alpha, rho, eta, 0);
   prob_inf = inv_logit(intercept + cumulative_sum(growth));
+  print(prob_inf);
 }
 
 model {
   vector[ctmax] lrit[t];
-
+  // gaussian process priors
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
   alpha ~ normal(0, 1);
   eta ~ std_normal();
-  
+  // calculate relative probability of infection for each t
   lrit = rel_inf_prob(prob_inf, ctmax, ut);
+  print(lrit);
+  // update likelihood (in parallel)
   target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ctmax);
 }
 
 generated quantities {
-  vector[t-7] R;
+  vector[ut - 7] R;
   // sample generation time
   real gtm_sample = normal_rng(gtm[1], gtm[2]);
   real gtsd_sample = normal_rng(gtsd[1], gtsd[2]);
