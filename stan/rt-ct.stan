@@ -25,7 +25,7 @@ data {
 
 transformed data {
   matrix[t - 1, M] PHI = setup_gp(M, L, t - 1);  
-  real intercept = logit(init_inf_prob);
+  real intercept = log(init_inf_prob);
 }
 
 parameters {
@@ -41,7 +41,7 @@ transformed parameters {
   // Infections from growth
   growth[1] = 0;
   growth[2:t] = update_gp(PHI, M, L, alpha, rho, eta, 0);
-  prob_inf = inv_logit(intercept + cumulative_sum(growth));
+  prob_inf = exp(intercept + cumulative_sum(growth));
 }
 
 model {

@@ -33,7 +33,7 @@ dat$ct <- ep_raw_vacc$p2ch1cq
 
 # define initial probability of infection (10%)
 # I am not sure the absolute number is meaningful
-dat$init_inf_prob <- 0.01
+dat$init_inf_prob <- 1
 
 # define ct parameters
 # assume ct lower than 30 threshold for 16 days 
