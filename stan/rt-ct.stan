@@ -51,14 +51,17 @@ transformed parameters {
 
 model {
   vector[ctmax] lrit[t];
+  vector[t] ldtpt;
   // gaussian process priors
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
   alpha ~ normal(0, 1);
   eta ~ std_normal();
-  // calculate relative logged probability of infection for each t
+  // relative log probability of infection for each t
   lrit = rel_inf_prob(prob_inf, ctmax, ut);
+  // log prob of detection for each t
+  ldtpt = rel_threshold_prob(ldtp, lrit, t, ctmax);
   // update likelihood (in parallel)
-  target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ldtp, ctmax);
+  target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ldtpt, ctmax);
 }
 
 generated quantities {
