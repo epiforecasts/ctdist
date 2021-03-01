@@ -8,7 +8,6 @@ vector[] rel_inf_prob(vector inf, int ctmax, int t) {
     for (j in 1:ctmax) {
       lrit[p][j] += inf[i - j];
     } 
-   // lrit[p] = log(lrit[p] / sum(lrit[p]));
    lrit[p] = log(lrit[p]);
   }
   return(lrit);
@@ -36,14 +35,11 @@ vector[] ct_log_dens(real[] ct, vector ct_inf_mean, vector ct_inf_sd) {
 }
 // create mixture of days since infection
 real ct_mixture(real[] ct, int start, int end, int[] tt, vector[] lrit,
-                vector[] ctlgd, int ctmax) {
+                vector[] ctlgd, vector ldtp, int ctmax) {
   real tar = 0;
     for (n in start:end) {
     vector[ctmax] lps = lrit[tt[n]];
-    for (k in 1:ctmax) {
-      lps[k] += ctlgd[n][k];
-    }
-    tar += log_sum_exp(lps);
+    tar += log_sum_exp(lps + ctlgd[n]) - log_sum_exp(lps + ldtp);
   }
   return(tar);
 }

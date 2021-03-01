@@ -30,7 +30,7 @@ transformed data {
   real intercept = logit(init_inf_prob);
   // calculate log density for each observed ct and day since infection
   vector[ctmax] ctlgd[N] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd);
-  // Calculate log of probability CT below threshold
+  // calculate log of probability CT below threshold
   vector[ctmax] ldtp = ct_threshold_prob(dt, ct_inf_mean, ct_inf_sd);
 }
 
@@ -46,6 +46,7 @@ transformed parameters {
   // relative probability of infection from growth
   growth = update_gp(PHI, M, L, alpha, rho, eta, 0);
   prob_inf = inv_logit(intercept + cumulative_sum(growth));
+  prob_inf = prob_inf / sum(prob_inf);
 }
 
 model {
@@ -57,7 +58,7 @@ model {
   // calculate relative logged probability of infection for each t
   lrit = rel_inf_prob(prob_inf, ctmax, ut);
   // update likelihood (in parallel)
-  target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ctmax);
+  target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ldtp, ctmax);
 }
 
 generated quantities {

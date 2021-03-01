@@ -23,10 +23,12 @@ threads <- 4
 # Load data ---------------------------------------------------------------
 ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
 
+
 # Data for stan -----------------------------------------------------------
 # subsample available data
-samples <- sample(1:nrow(ep_raw_vacc), 10)
+samples <- sample(1:nrow(ep_raw_vacc), 1000)
 ep_raw_vacc <- ep_raw_vacc[samples, ]
+min_date <- min(ep_raw_vacc$date_specimen)
 
 # define observations
 dat <- stan_data(ep_raw_vacc, 
@@ -46,26 +48,25 @@ mod <- cmdstan_model(here("stan", "rt-ct.stan"), include_paths = "stan",
 # Fit model ---------------------------------------------------------------
 fit <- mod$sample(data = dat, parallel_chains = cores, 
                   threads_per_chain = threads)
+# check
+fit$cmdstan_diagnose()
 
 # summarise fit
 fit$summary()
 
-# check
-fit$cmdstan_diagnose()
-
 # Plot variables over time ------------------------------------------------
-plot_trend(fit, "prob_inf") +
+plot_trend(fit, "prob_inf", date_start = min_date - dat$ctmax)
   labs(y = "Relative probability of infection", x = "Date")
 
 ggsave(here("figures", "ct-relative-prob-inf.pdf"), width = 7, height = 5)
 
-plot_trend(fit, "growth") +
+plot_trend(fit, "growth", date_start = min_date - dat$ctmax) +
   labs(y = "Daily growth rate", x = "Date") +
   geom_hline(yintercept = 0, linetype = 2)
 
 ggsave(here("figures", "ct-growth.pdf"), width = 7, height = 5)
 
-plot_trend(fit, "R", min(ep_raw_vacc$date_specimen) - dat$ctmax + 7) +
+plot_trend(fit, "R",  date_start = min_date - dat$ctmax + 7) +
   labs(y = "Effective reproduction number", x = "Date") +
   geom_hline(yintercept = 1, linetype = 2)
 

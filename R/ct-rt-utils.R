@@ -50,8 +50,7 @@ library(dplyr)
 library(ggplot2)
 
 # plot trend with date over time
-plot_trend <- function(fit, var, 
-                       date_start =  min(ep_raw_vacc$date_specimen) - dat$ctmax) {
+plot_trend <- function(fit, var, date_start) {
   fit$summary(variables = var, 
               ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))) %>% 
     mutate(time = 1:n(),
