@@ -4,7 +4,7 @@ stan_data <- function(obs, load_vec = "p2ch1cq", init_prob = 0.1,
                       ct_mean = c(50 - 4*0:5, 20 + (0:7)*2), ct_sd =  rep(1, 14),
                       gt = get_generation_time(
                         disease = "SARS-CoV-2", source = "ganyani", max = 15
-                        ), gp_m = 0.3, gp_ls = c(7, NA),
+                        ), gp_m = 0.3, gp_ls = c(7, NA)
                       ) {
   
   # define observations
@@ -19,7 +19,7 @@ stan_data <- function(obs, load_vec = "p2ch1cq", init_prob = 0.1,
   dat$init_inf_prob <- init_prob
   
   # define ct parameters + unobserved time
-  if (length(ct_mean) != ct_sd) {
+  if (length(ct_mean) != length(ct_sd)) {
     stop("CT mean and standard deviation vector must be the same length")
   }
   dat$ctmax <- length(ct_mean)
@@ -31,7 +31,7 @@ stan_data <- function(obs, load_vec = "p2ch1cq", init_prob = 0.1,
   dat$M <- ceiling(dat$ut * gp_m)
   dat$L <- 2
   if (is.na(gp_ls[2])) {
-    gp_ls <- dat$ut
+    gp_ls[2] <- dat$ut
   }
   
   lsp <- tune_inv_gamma(gp_ls[1], gp_ls[2])
@@ -41,8 +41,8 @@ stan_data <- function(obs, load_vec = "p2ch1cq", init_prob = 0.1,
   #define generation time
   dat$gtm <- unlist(gt[c("mean", "mean_sd")])
   dat$gtsd <- unlist(gt[c("sd", "sd_sd")])
-  dat$gtmax <- unlisst(gt[c("max")])
-  
+  dat$gtmax <- unlist(gt[c("max")])
+  return(dat)
 }
 # plot packages
 library(cmdstanr)
