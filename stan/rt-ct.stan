@@ -7,7 +7,7 @@ functions {
 // The input data is a vector 'y' of length 'N'.
 data {
   int N; // number of ct samples
-  int t; // time of considered
+  int t; // time considered
   int tt[N]; // time each sample taken
   real ct[N]; // count with ct value 
   real init_inf_prob; // initial probability of infection
@@ -24,7 +24,8 @@ data {
 }
 
 transformed data {
-  matrix[t - 1, M] PHI = setup_gp(M, L, t - 1);  
+  int ut = t + ctmax;
+  matrix[ut - 1, M] PHI = setup_gp(M, L, ut - 1);  
   real intercept = logit(init_inf_prob);
   vector[ctmax] ctlgd[N] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd);
 }
@@ -36,23 +37,23 @@ parameters {
 }
 
 transformed parameters {
-  vector[t] growth;
-  vector[t] prob_inf;
+  vector[ut] growth;
+  vector[ut] prob_inf;
   
   // Infections from growth
   growth[1] = 0;
-  growth[2:t] = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  growth[2:ut] = update_gp(PHI, M, L, alpha, rho, eta, 0);
   prob_inf = inv_logit(intercept + cumulative_sum(growth));
 }
 
 model {
-  vector[ctmax] lrit[t - 1];
+  vector[ctmax] lrit[t];
 
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
   alpha ~ normal(0, 1);
   eta ~ std_normal();
   
-  lrit = rel_inf_prob(prob_inf, ctmax, t);
+  lrit = rel_inf_prob(prob_inf, ctmax, ut);
   target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ctmax);
 }
 

@@ -27,8 +27,8 @@ ep_raw_vacc <- ep_raw_vacc[samples, ]
 # define observations
 dat <- list()
 dat$N <- nrow(ep_raw_vacc)
-dat$t <- max(ep_raw_vacc$time) + 2
-dat$tt <- ep_raw_vacc$time + 2
+dat$t <- max(ep_raw_vacc$time) + 1
+dat$tt <- ep_raw_vacc$time + 1
 dat$ct <- ep_raw_vacc$p2ch1cq
 
 # define initial probability of infection (10%)
@@ -72,7 +72,7 @@ fit$cmdstan_diagnose()
 # Plot variables over time ------------------------------------------------
 plot_trend <- function(fit, var, max_date = max(ep_raw_vacc$date_specimen)) {
   fit$summary(variables = var, 
-              ~quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))) %>% 
+              ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))) %>% 
     mutate(time = 1:n()) %>% 
     ggplot() +
     aes(x = time, y = `50%`, ymin = `5%`, ymax = `95%`) + 
