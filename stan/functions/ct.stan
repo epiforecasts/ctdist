@@ -29,7 +29,7 @@ real ct_mixture(real[] ct, int start, int end, int[] tt, vector[] lrit,
                 vector[] ctlgd, int ctmax) {
   real tar = 0;
     for (n in start:end) {
-    vector[ctmax] lps = lrit[tt[n] - 1];
+    vector[ctmax] lps = lrit[tt[n]];
     for (k in 1:ctmax) {
       lps[k] += ctlgd[n][k];
     }

@@ -44,7 +44,6 @@ transformed parameters {
   growth[1] = 0;
   growth[2:ut] = update_gp(PHI, M, L, alpha, rho, eta, 0);
   prob_inf = inv_logit(intercept + cumulative_sum(growth));
-  print(prob_inf);
 }
 
 model {
@@ -55,9 +54,9 @@ model {
   eta ~ std_normal();
   // calculate relative probability of infection for each t
   lrit = rel_inf_prob(prob_inf, ctmax, ut);
-  print(lrit);
   // update likelihood (in parallel)
-  target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ctmax);
+  //target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ctmax);
+  target += ct_mixture(ct, 1, N, tt, lrit, ctlgd, ctmax); 
 }
 
 generated quantities {

@@ -21,7 +21,7 @@ ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
 
 # Data for stan -----------------------------------------------------------
 # subsample available data
-samples <- sample(1:nrow(ep_raw_vacc), 1000)
+samples <- sample(1:nrow(ep_raw_vacc), 20)
 ep_raw_vacc <- ep_raw_vacc[samples, ]
 
 # define observations
