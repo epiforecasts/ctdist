@@ -8,9 +8,19 @@ vector[] rel_inf_prob(vector inf, int ctmax, int t) {
     for (j in 1:ctmax) {
       lrit[p][j] += inf[i - j];
     } 
-    lrit[p] = log(lrit[p] / sum(lrit[p]));
+   // lrit[p] = log(lrit[p] / sum(lrit[p]));
+   lrit[p] = log(lrit[p]);
   }
   return(lrit);
+}
+// Calculate log normal cumulative density
+vector ct_threshold_prob(real dt, vector ct_inf_mean, vector ct_inf_sd) {
+  int ctmax = num_elements(ct_inf_mean);
+  vector[ctmax] ldtp;
+  for (k in 1:ctmax) {
+    ldtp[k] = normal_lcdf(dt | ct_inf_mean[k], ct_inf_sd[k]);
+  }
+  return(ldtp);
 }
 // Calculate log normal density for each observation and day since infection
 vector[] ct_log_dens(real[] ct, vector ct_inf_mean, vector ct_inf_sd) {

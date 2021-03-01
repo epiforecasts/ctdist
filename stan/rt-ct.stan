@@ -10,6 +10,7 @@ data {
   int ut; // time considered + ctmax
   int tt[N]; // time each sample taken
   real ct[N]; // count with ct value 
+  real dt; // detection threshold
   real init_inf_prob; // initial probability of infection
   int ctmax; // maximum number of days post infection considered for ct values
   vector[ctmax] ct_inf_mean; // mean CT by day since infection
@@ -29,6 +30,8 @@ transformed data {
   real intercept = logit(init_inf_prob);
   // calculate log density for each observed ct and day since infection
   vector[ctmax] ctlgd[N] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd);
+  // Calculate log of probability CT below threshold
+  vector[ctmax] ldtp = ct_threshold_prob(dt, ct_inf_mean, ct_inf_sd);
 }
 
 parameters {

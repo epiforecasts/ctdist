@@ -1,7 +1,7 @@
 library(EpiNow2)
 # define required stan data
 stan_data <- function(obs, load_vec = "p2ch1cq", init_prob = 0.1, 
-                      ct_mean = c(50 - 4*0:5, 20 + (0:7)*2), ct_sd =  rep(1, 14),
+                      ct_mean, ct_sd, dt = 30,
                       gt = get_generation_time(
                         disease = "SARS-CoV-2", source = "ganyani", max = 15
                         ), gp_m = 0.3, gp_ls = c(7, NA)
@@ -13,6 +13,7 @@ stan_data <- function(obs, load_vec = "p2ch1cq", init_prob = 0.1,
   dat$t <- max(obs$time) + 1
   dat$tt <- obs$time + 1
   dat$ct <- obs[["p2ch1cq"]]
+  dat$dt <- dt
   
   # define initial probability of infection
   # the absolute number isn't meaningful which isn't ideal
@@ -33,7 +34,6 @@ stan_data <- function(obs, load_vec = "p2ch1cq", init_prob = 0.1,
   if (is.na(gp_ls[2])) {
     gp_ls[2] <- dat$ut
   }
-  
   lsp <- tune_inv_gamma(gp_ls[1], gp_ls[2])
   dat$lengthscale_alpha <- lsp$alpha
   dat$lengthscale_beta <- lsp$beta
