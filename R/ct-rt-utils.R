@@ -1,6 +1,6 @@
 library(EpiNow2)
 # define required stan data
-stan_data <- function(obs, load_vec = "p2ch1cq", init_prob = 0.1, 
+stan_data <- function(obs, load_vec = "p2ch1cq", overall_prob = 1, 
                       ct_mean, ct_sd, dt = 30,
                       gt = get_generation_time(
                         disease = "SARS-CoV-2", source = "ganyani", max = 15
@@ -15,9 +15,8 @@ stan_data <- function(obs, load_vec = "p2ch1cq", init_prob = 0.1,
   dat$ct <- obs[["p2ch1cq"]]
   dat$dt <- dt
   
-  # define initial probability of infection
-  # the absolute number isn't meaningful which isn't ideal
-  dat$init_inf_prob <- init_prob
+  # overall probability scaling factor
+  dat$overall_prob <- overall_prob
   
   # define ct parameters + unobserved time
   if (length(ct_mean) != length(ct_sd)) {

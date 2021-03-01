@@ -41,11 +41,11 @@ vector[] rel_inf_prob(vector inf, int ctmax, int t) {
   return(lrit);
 }
 // create mixture of days since infection
-real ct_mixture(real[] ct, int start, int end, int[] tt, vector[] lrit,
-                vector[] ctlgd, vector ldtpt, int ctmax) {
+real ct_loglik(real[] ct, int start, int end, int[] tt, vector[] lrit,
+vector[] ctlgd, vector ldtpt, int ctmax) {
   real tar = 0;
   int t;
-    for (n in start:end) {
+  for (n in start:end) {
     t = tt[n];
     tar += log_sum_exp(lrit[t] + ctlgd[n]) - ldtpt[t];
   }

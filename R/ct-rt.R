@@ -6,6 +6,7 @@ library(bayesplot)
 library(EpiNow2)
 library(dplyr)
 library(tidyr)
+library(lubridate)
 library(ggplot2)
 color_scheme_set("brightblue")
 
@@ -14,7 +15,9 @@ color_scheme_set("brightblue")
 source(here("R", "ct-rt-utils.R"))
 
 # Set up parallel ---------------------------------------------------------
+# number of cores (only uses up to 4 chains)
 cores <- 4
+# number of threads per core (so available cores / cores)
 threads <- 4
 
 # Set up CmdStan if required ----------------------------------------------
@@ -23,16 +26,19 @@ threads <- 4
 # Load data ---------------------------------------------------------------
 ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
 
-
 # Data for stan -----------------------------------------------------------
-# subsample available data
+# snapshot just a single day of each week 
+# applied to speed up computation
+#ep_raw_vacc <- ep_raw_vacc %>% 
+#  filter(wday(date_specimen) == 1)
 samples <- sample(1:nrow(ep_raw_vacc), 5000)
+# subsample available data
 ep_raw_vacc <- ep_raw_vacc[samples, ]
 min_date <- min(ep_raw_vacc$date_specimen, na.rm = TRUE)
 
 # define observations
 dat <- stan_data(ep_raw_vacc, 
-                 init_prob = 0.1, 
+                 overall_prob = 1, 
                  ct_mean =  c(40 - 4*0:6, 18 + (0:4)*3), 
                  ct_sd =  rep(1, 12),
                  dt = 30,
@@ -60,7 +66,7 @@ plot_trend(fit, "prob_inf", date_start = min_date - dat$ctmax) +
 
 ggsave(here("figures", "ct-relative-prob-inf.pdf"), width = 7, height = 5)
 
-plot_trend(fit, "growth", date_start = min_date - dat$ctmax) +
+plot_trend(fit, "r", date_start = min_date - dat$ctmax - 1) +
   labs(y = "Daily growth rate", x = "Date") +
   geom_hline(yintercept = 0, linetype = 2)
 
