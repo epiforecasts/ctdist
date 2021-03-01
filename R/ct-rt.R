@@ -91,7 +91,7 @@ plot_trend(fit, "prob_inf") +
 
 plot_trend(fit, "growth") +
   labs(y = "Daily growth rate", x = "Time") +
-  geom_hline(yintercept = 1, linetype = 2)
+  geom_hline(yintercept = 0, linetype = 2)
 
 plot_trend(fit, "R") +
   labs(y = "Effective reproduction number", x = "Time") +
