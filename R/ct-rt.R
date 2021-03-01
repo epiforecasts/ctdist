@@ -6,55 +6,48 @@ library(bayesplot)
 library(EpiNow2)
 library(dplyr)
 library(tidyr)
+library(lubridate)
 library(ggplot2)
 color_scheme_set("brightblue")
 
+
+# Source utilities --------------------------------------------------------
+source(here("R", "ct-rt-utils.R"))
+
 # Set up parallel ---------------------------------------------------------
+# number of cores (only uses up to 4 chains)
 cores <- 4
+# number of threads per core (so available cores / cores)
 threads <- 4
 
 # Set up CmdStan if required ----------------------------------------------
 # install_cmdstan(cores = cores)
 
 # Load data ---------------------------------------------------------------
+# must contain, viral load or proxy, time, date
 ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
 
 # Data for stan -----------------------------------------------------------
 # subsample available data
 samples <- sample(1:nrow(ep_raw_vacc), 5000)
 ep_raw_vacc <- ep_raw_vacc[samples, ]
+min_date <- min(ep_raw_vacc$date_specimen, na.rm = TRUE)
+
+# define CT post infection (loosely inspired Hay et al)
+ct <- tibble(mean = c(40 - 0:4*5, 18 + 0:10*2),
+             sd = c(rep(1, 5), rep(2, 11)))
 
 # define observations
-dat <- list()
-dat$N <- nrow(ep_raw_vacc)
-dat$t <- max(ep_raw_vacc$time) + 1
-dat$tt <- ep_raw_vacc$time + 1
-dat$ct <- ep_raw_vacc$p2ch1cq
-
-# define initial probability of infection (10%)
-# I am not sure the absolute number is meaningful which isn't ideal
-dat$init_inf_prob <- 0.1
-
-# define ct parameters
-# assume ct lower than 30 threshold for 16 days 
-# initial linear decrease followed by linear increase
-dat$ctmax <- 12
-dat$ct_inf_mean <- c(50 - 4*0:5, 20 + (0:5)*2)
-dat$ct_inf_sd <- rep(0.5, length(dat$ct_inf_mean))
-dat$ut <- dat$t + dat$ctmax
-
-# gaussian process parameters
-dat$M <- ceiling(dat$ut / 3)
-dat$L <- 2
-lsp <- tune_inv_gamma(7, dat$ut)
-dat$lengthscale_alpha <- lsp$alpha
-dat$lengthscale_beta <- lsp$beta
-
-# add generation time assumption
-gt <- get_generation_time(disease = "SARS-CoV-2", source = "ganyani")
-dat$gtm <- unlist(gt[c("mean", "mean_sd")])
-dat$gtsd <- unlist(gt[c("sd", "sd_sd")])
-dat$gtmax <- 15
+dat <- stan_data(ep_raw_vacc, 
+                 load_vec = "p2ch1cq",
+                 overall_prob = 1,
+                 ct_mean =  ct$mean,
+                 ct_sd =  ct$sd,
+                 dt = 30,
+                 gt = get_generation_time(
+                   disease = "SARS-CoV-2", source = "ganyani", max = 15
+                   ), gp_m = 0.3, gp_ls = c(7, NA)
+                 )
 
 # Load model --------------------------------------------------------------
 mod <- cmdstan_model(here("stan", "rt-ct.stan"), include_paths = "stan",
@@ -63,36 +56,26 @@ mod <- cmdstan_model(here("stan", "rt-ct.stan"), include_paths = "stan",
 # Fit model ---------------------------------------------------------------
 fit <- mod$sample(data = dat, parallel_chains = cores, 
                   threads_per_chain = threads)
+# check
+fit$cmdstan_diagnose()
 
 # summarise fit
 fit$summary()
 
-# check
-fit$cmdstan_diagnose()
-
 # Plot variables over time ------------------------------------------------
-plot_trend <- function(fit, var, max_date = max(ep_raw_vacc$date_specimen)) {
-  fit$summary(variables = var, 
-              ~ quantile(.x, probs = c(0.05, 0.2, 0.5, 0.8, 0.95))) %>% 
-    mutate(time = 1:n()) %>% 
-    ggplot() +
-    aes(x = time, y = `50%`, ymin = `5%`, ymax = `95%`) + 
-    geom_line(col = "lightblue", size = 1.4) +
-    geom_ribbon(fill = "lightblue", alpha = 0.4,
-                col = "lightblue", size = 0.8) +
-    geom_ribbon(fill = "lightblue", alpha = 0.4,
-                col = NULL, size = 0.8,
-                aes(ymin = `20%`, ymax = `80%`)) +
-    theme_minimal()
-}
+plot_trend(fit, "prob_inf", date_start = min_date - dat$ctmax) +
+  labs(y = "Relative probability of infection", x = "Date")
 
-plot_trend(fit, "prob_inf") +
-  labs(y = "Probability of infection", x = "Time")
+ggsave(here("figures", "ct-relative-prob-inf.pdf"), width = 7, height = 5)
 
-plot_trend(fit, "growth") +
-  labs(y = "Daily growth rate", x = "Time") +
+plot_trend(fit, "r", date_start = min_date - dat$ctmax - 1) +
+  labs(y = "Daily growth rate", x = "Date") +
+  geom_hline(yintercept = 0, linetype = 2)
+
+ggsave(here("figures", "ct-growth.pdf"), width = 7, height = 5)
+
+plot_trend(fit, "R",  date_start = min_date - dat$ctmax + 7) +
+  labs(y = "Effective reproduction number", x = "Date") +
   geom_hline(yintercept = 1, linetype = 2)
 
-plot_trend(fit, "R") +
-  labs(y = "Effective reproduction number", x = "Time") +
-  geom_hline(yintercept = 1, linetype = 2)
+ggsave(here("figures", "ct-Rt.pdf"), width = 7, height = 5)
