@@ -25,7 +25,7 @@ data {
 
 transformed data {
   // set up gaussian process
-  matrix[ut - 1, M] PHI = setup_gp(M, L, ut - 1);  
+  matrix[ut, M] PHI = setup_gp(M, L, ut);  
   real intercept = logit(init_inf_prob);
   // calculate log density for each observed ct and day since infection
   vector[ctmax] ctlgd[N] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd);
@@ -41,8 +41,7 @@ transformed parameters {
   vector[ut] growth;
   vector[ut] prob_inf;
   // relative probability of infection from growth
-  growth[1] = 0;
-  growth[2:ut] = update_gp(PHI, M, L, alpha, rho, eta, 0);
+  growth = update_gp(PHI, M, L, alpha, rho, eta, 0);
   prob_inf = inv_logit(intercept + cumulative_sum(growth));
 }
 
@@ -52,7 +51,7 @@ model {
   rho ~ inv_gamma(lengthscale_alpha, lengthscale_beta);
   alpha ~ normal(0, 1);
   eta ~ std_normal();
-  // calculate relative probability of infection for each t
+  // calculate relative logged probability of infection for each t
   lrit = rel_inf_prob(prob_inf, ctmax, ut);
   // update likelihood (in parallel)
   target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ctmax);
