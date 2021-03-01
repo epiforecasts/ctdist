@@ -21,7 +21,7 @@ ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
 
 # Data for stan -----------------------------------------------------------
 # subsample available data
-samples <- sample(1:nrow(ep_raw_vacc), 20)
+samples <- sample(1:nrow(ep_raw_vacc), 5000)
 ep_raw_vacc <- ep_raw_vacc[samples, ]
 
 # define observations
@@ -33,7 +33,7 @@ dat$ct <- ep_raw_vacc$p2ch1cq
 
 # define initial probability of infection (10%)
 # I am not sure the absolute number is meaningful which isn't ideal
-dat$init_inf_prob <- 0.01
+dat$init_inf_prob <- 0.1
 
 # define ct parameters
 # assume ct lower than 30 threshold for 16 days 
@@ -81,13 +81,17 @@ plot_trend <- function(fit, var, max_date = max(ep_raw_vacc$date_specimen)) {
     geom_ribbon(fill = "lightblue", alpha = 0.4,
                 col = "lightblue", size = 0.8) +
     geom_ribbon(fill = "lightblue", alpha = 0.4,
-                col = "lightblue", size = 0.8,
+                col = NULL, size = 0.8,
                 aes(ymin = `20%`, ymax = `80%`)) +
     theme_minimal()
 }
 
 plot_trend(fit, "prob_inf") +
   labs(y = "Probability of infection", x = "Time")
+
+plot_trend(fit, "growth") +
+  labs(y = "Daily growth rate", x = "Time") +
+  geom_hline(yintercept = 1, linetype = 2)
 
 plot_trend(fit, "R") +
   labs(y = "Effective reproduction number", x = "Time") +

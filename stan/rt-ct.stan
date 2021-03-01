@@ -55,8 +55,7 @@ model {
   // calculate relative probability of infection for each t
   lrit = rel_inf_prob(prob_inf, ctmax, ut);
   // update likelihood (in parallel)
-  //target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ctmax);
-  target += ct_mixture(ct, 1, N, tt, lrit, ctlgd, ctmax); 
+  target += reduce_sum(ct_mixture, ct, 1, tt, lrit, ctlgd, ctmax);
 }
 
 generated quantities {
