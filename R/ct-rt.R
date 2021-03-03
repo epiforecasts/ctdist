@@ -35,7 +35,7 @@ samples <- sample(1:nrow(ep_raw_vacc), 1000)
 ep_raw_vacc <- ep_raw_vacc[samples, ]
 min_date <- min(ep_raw_vacc$date_specimen, na.rm = TRUE)
 
-# define CT post infection (loosely inspired Hay et al)
+# define CT post infection (loosely inspired by Hay et al)
 ct <- tibble(mean = c(40 - 0:4*5, 18 + 0:10*2),
              sd = c(rep(1, 5), rep(2, 11)))
 
@@ -61,7 +61,7 @@ fit <- mod$sample(data = dat, parallel_chains = cores,
 fit$cmdstan_diagnose()
 
 # summarise fit
-fit$summary()
+fit$cmdstan_summary()
 
 # Plot variables over time ------------------------------------------------
 plot_trend(fit, "prob_inf", date_start = min_date - dat$ctmax) +

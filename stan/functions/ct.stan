@@ -7,10 +7,10 @@ vector ct_threshold_prob(real dt, vector ct_inf_mean, vector ct_inf_sd) {
   }
   return(ldtp);
 }
-vector rel_threshold_prob(vector ldtp, vector[] lrit, int t) {
+vector rel_threshold_prob(vector[] lrit, int t) {
   vector[t] ldtpt;
   for (i in 1:t) {
-    ldtpt[i] = log_sum_exp(lrit[i] + ldtp);
+    ldtpt[i] = -log_sum_exp(lrit[i]);
   }
   return(ldtpt);
 }
@@ -27,16 +27,16 @@ vector[] ct_log_dens(real[] ct, vector ct_inf_mean, vector ct_inf_sd) {
   return(ctlgd);
 }
 // relative infection probability for each reference time look up
-vector[] rel_inf_prob(vector inf, int ctmax, int t) {
+vector[] rel_inf_prob(vector prob_inf, vector ldtp, int ctmax, int t) {
   int p;
   vector[ctmax] lrit[t - ctmax];
   for (i in (ctmax + 1):t) {
     p = i - ctmax;
     lrit[p] = rep_vector(1e-8, ctmax);
     for (j in 1:ctmax) {
-      lrit[p][j] += inf[i - j];
+      lrit[p][j] += prob_inf[i - j];
     } 
-   lrit[p] = log(lrit[p]);
+   lrit[p] = log(lrit[p]) + ldtp;
   }
   return(lrit);
 }
@@ -47,7 +47,7 @@ real ct_loglik(real[] ct, int start, int end, int[] tt, vector[] lrit,
   int t;
   for (n in start:end) {
     t = tt[n];
-    tar += log_sum_exp(lrit[t] + ctlgd[n]);// - ldtpt[t];
+    tar += log_sum_exp(lrit[t] + ctlgd[n]) - ldtpt[t];
   }
   return(tar);
 }

@@ -59,13 +59,13 @@ model {
   alpha ~ normal(0, 1);
   eta ~ std_normal();
   // relative log probability of infection for each t
-  lrit = rel_inf_prob(prob_inf, ctmax, ut);
+  lrit = rel_inf_prob(prob_inf, ldtp, ctmax, ut);
   // log prob of detection for each t
-  ldtpt = rel_threshold_prob(ldtp, lrit, t);
+  ldtpt = rel_threshold_prob(lrit, t);
   // update likelihood (in parallel)
-  //target += reduce_sum(ct_loglik, ct, 1, tt, lrit, ctlgd, ldtpt);
+  target += reduce_sum(ct_loglik, ct, 1, tt, lrit, ctlgd, ldtpt);
   // if using rstan/no reduce_sum comment out above and use below instead
-  target += ct_loglik(ct, 1, n, tt, lrit, ctlgd, ldtpt);
+  //target += ct_loglik(ct, 1, n, tt, lrit, ctlgd, ldtpt);
 }
 
 generated quantities {
