@@ -47,7 +47,7 @@ real ct_loglik(real[] ct, int start, int end, int[] tt, vector[] lrit,
   int t;
   for (n in start:end) {
     t = tt[n];
-    tar += log_sum_exp(lrit[t] + ctlgd[n]) - ldtpt[t];
+    tar += log_sum_exp(lrit[t] + ctlgd[n]);// - ldtpt[t];
   }
   return(tar);
 }

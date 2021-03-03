@@ -14,14 +14,13 @@ stan_data <- function(obs, load_vec = "p2ch1cq", overall_prob = 1,
   # define observations
   dat <- list()
   dat$n <- nrow(obs)
-  dat$t <- max(obs$time) + 1
-  dat$tt <- obs$time + 1
+  dat$t <- max(obs$time)
+  dat$tt <- obs$time
   dat$ct <- obs[["p2ch1cq"]]
   dat$dt <- dt
   
   # observations by time point
   dat$nt <- copy(obs)[, .(nobs = .N), by = time][order(time)]
-  dat$nt <- dat$nt[, time := time + 1]
   dat$nt <- merge(data.table(time = 1:dat$t), dat$nt, by = "time", all = TRUE)
   dat$nt <- dat$nt[is.na(nobs), nobs := 0]
   dat$nt <- dat$nt$nobs
@@ -34,7 +33,7 @@ stan_data <- function(obs, load_vec = "p2ch1cq", overall_prob = 1,
   dat$ct_inf_mean <- ct$mean
   dat$ct_inf_sd <- ct$sd
   dat$ut <- dat$t + dat$ctmax
-  
+
   # gaussian process parameters
   dat$M <- ceiling(dat$ut * gp_m)
   dat$L <- 2

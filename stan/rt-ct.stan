@@ -64,9 +64,9 @@ model {
   // log prob of detection for each t
   ldtpt = rel_threshold_prob(ldtp, lrit, nt, t);
   // update likelihood (in parallel)
-  target += reduce_sum(ct_loglik, ct, 1, tt, lrit, ctlgd, ldtpt);
+  //target += reduce_sum(ct_loglik, ct, 1, tt, lrit, ctlgd, ldtpt);
   // if using rstan/no reduce_sum comment out above and use below instead
-  //target += ct_loglik(ct, 1, n, tt, lrit, ctlgd, ldtpt);
+  target += ct_loglik(ct, 1, n, tt, lrit, ctlgd, ldtpt);
 }
 
 generated quantities {

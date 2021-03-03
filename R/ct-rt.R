@@ -26,10 +26,12 @@ threads <- 4
 # Load data ---------------------------------------------------------------
 # must contain, viral load or proxy, time, date
 ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
+# make time indexed from 1
+ep_raw_vacc$time <- ep_raw_vacc$time + 1
 
 # Data for stan -----------------------------------------------------------
 # subsample available data
-samples <- sample(1:nrow(ep_raw_vacc), 5000)
+samples <- sample(1:nrow(ep_raw_vacc), 1000)
 ep_raw_vacc <- ep_raw_vacc[samples, ]
 min_date <- min(ep_raw_vacc$date_specimen, na.rm = TRUE)
 
