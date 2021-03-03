@@ -29,7 +29,7 @@ ep_raw_vacc <- readRDS(here("data", "ct_covariates.rds"))
 
 # Data for stan -----------------------------------------------------------
 # subsample available data
-samples <- sample(1:nrow(ep_raw_vacc), 5000)
+samples <- sample(1:nrow(ep_raw_vacc), 1000)
 ep_raw_vacc <- ep_raw_vacc[samples, ]
 min_date <- min(ep_raw_vacc$date_specimen, na.rm = TRUE)
 
@@ -41,12 +41,11 @@ ct <- tibble(mean = c(40 - 0:4*5, 18 + 0:10*2),
 dat <- stan_data(ep_raw_vacc, 
                  load_vec = "p2ch1cq",
                  overall_prob = 1,
-                 ct_mean =  ct$mean,
-                 ct_sd =  ct$sd,
+                 ct =  ct,
                  dt = 30,
                  gt = get_generation_time(
                    disease = "SARS-CoV-2", source = "ganyani", max = 15
-                   ), gp_m = 0.3, gp_ls = c(7, NA)
+                   ), gp_m = 0.1, gp_ls = c(7, NA)
                  )
 
 # Load model --------------------------------------------------------------

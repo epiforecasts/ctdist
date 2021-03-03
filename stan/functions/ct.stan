@@ -7,10 +7,10 @@ vector ct_threshold_prob(real dt, vector ct_inf_mean, vector ct_inf_sd) {
   }
   return(ldtp);
 }
-vector rel_threshold_prob(vector ldtp, vector[] lrit, int t, int ctmax) {
+vector rel_threshold_prob(vector ldtp, vector[] lrit, int[] nt, int t) {
   vector[t] ldtpt;
   for (i in 1:t) {
-    ldtpt[i] = log_sum_exp(lrit[i] + ldtp);
+    ldtpt[i] = log_sum_exp(lrit[i] + ldtp) * nt[i];
   }
   return(ldtpt);
 }
@@ -42,7 +42,7 @@ vector[] rel_inf_prob(vector inf, int ctmax, int t) {
 }
 // log likelihood across CT observations
 real ct_loglik(real[] ct, int start, int end, int[] tt, vector[] lrit,
-vector[] ctlgd, vector ldtpt, int ctmax) {
+               vector[] ctlgd, vector ldtpt) {
   real tar = 0;
   int t;
   for (n in start:end) {
