@@ -11,7 +11,6 @@ data {
   int ut; // time considered + ctmax
   int tt[n]; // time each sample taken
   real ct[n]; // count with ct value 
-  int nt[t]; // number of ct samples at each observation time
   real dt; // detection threshold
   real overall_prob; // overall probability of infection
   int ctmax; // maximum number of days post infection considered for ct values
@@ -62,7 +61,7 @@ model {
   // relative log probability of infection for each t
   lrit = rel_inf_prob(prob_inf, ctmax, ut);
   // log prob of detection for each t
-  ldtpt = rel_threshold_prob(ldtp, lrit, nt, t);
+  ldtpt = rel_threshold_prob(ldtp, lrit, t);
   // update likelihood (in parallel)
   //target += reduce_sum(ct_loglik, ct, 1, tt, lrit, ctlgd, ldtpt);
   // if using rstan/no reduce_sum comment out above and use below instead
