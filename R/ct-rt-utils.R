@@ -20,10 +20,12 @@ stan_data <- function(obs, load_vec = "p2ch1cq", overall_prob = 1,
   dat$dt <- dt
   
   # observations by time point
-  dat$nt <- obs[, .(n = .N), by = time][order(time)]
+  dat$nt <- copy(obs)[, .(nobs = .N), by = time][order(time)]
+  dat$nt <- dat$nt[, time := time + 1]
   dat$nt <- merge(data.table(time = 1:dat$t), dat$nt, by = "time", all = TRUE)
-  date$nt <- dat$nt[is.na(n), n := 0]$n
-  
+  dat$nt <- dat$nt[is.na(nobs), nobs := 0]
+  dat$nt <- dat$nt$nobs
+
   # overall probability scaling factor
   dat$overall_prob <- overall_prob
   
