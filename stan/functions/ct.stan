@@ -10,7 +10,7 @@ vector ct_threshold_prob(real dt, vector ct_inf_mean, vector ct_inf_sd) {
 vector rel_threshold_prob(vector[] lrit, int t) {
   vector[t] ldtpt;
   for (i in 1:t) {
-    ldtpt[i] = -log_sum_exp(lrit[i]);
+    ldtpt[i] = log_sum_exp(lrit[i]);
   }
   return(ldtpt);
 }
