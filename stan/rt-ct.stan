@@ -28,10 +28,10 @@ data {
 transformed data {
   // set up approximate gaussian process
   matrix[ut, M] PHI = setup_gp(M, L, ut);  
-  // calculate log density for each observed ct and day since infection
-  vector[ctmax] ctlgd[n] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd);
   // calculate log of probability CT below threshold
   vector[ctmax] ldtp = ct_threshold_prob(dt, ct_inf_mean, ct_inf_sd);
+  // calculate log density for each observed ct and day since infection 
+  vector[ctmax] ctlgd[n] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd, ldtp);
 }
 
 parameters {
@@ -61,7 +61,10 @@ model {
   // relative log probability of infection for each t
   lrit = rel_inf_prob(prob_inf, ldtp, ctmax, ut);
   // log prob of detection for each t
-  ldtpt = rel_threshold_prob(lrit, t);
+  // this is now the denominator
+  // sum(phi[a] * phi[t-a]) for
+  // a = 1 to Amax
+  ldtpt = rel_threshold_prob(lrit, t, ldtp);
   // update likelihood (in parallel)
   target += reduce_sum(ct_loglik, ct, 1, tt, lrit, ctlgd, ldtpt);
   // if using rstan/no reduce_sum comment out above and use below instead
