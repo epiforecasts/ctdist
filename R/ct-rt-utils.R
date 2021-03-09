@@ -1,32 +1,33 @@
 library(EpiNow2)
+library(data.table)
+
 # define required stan data
 stan_data <- function(obs, load_vec = "p2ch1cq", overall_prob = 1, 
-                      ct_mean, ct_sd, dt = 30,
+                      ct, dt = 30,
                       gt = get_generation_time(
                         disease = "SARS-CoV-2", source = "ganyani", max = 15
                         ), gp_m = 0.3, gp_ls = c(7, NA)
                       ) {
   
+  obs <- as.data.table(obs)
+
   # define observations
   dat <- list()
-  dat$N <- nrow(obs)
-  dat$t <- max(obs$time) + 1
-  dat$tt <- obs$time + 1
+  dat$n <- nrow(obs)
+  dat$t <- max(obs$time)
+  dat$tt <- obs$time
   dat$ct <- obs[["p2ch1cq"]]
   dat$dt <- dt
-  
+
   # overall probability scaling factor
   dat$overall_prob <- overall_prob
   
   # define ct parameters + unobserved time
-  if (length(ct_mean) != length(ct_sd)) {
-    stop("CT mean and standard deviation vector must be the same length")
-  }
-  dat$ctmax <- length(ct_mean)
-  dat$ct_inf_mean <- ct_mean
-  dat$ct_inf_sd <- ct_sd
+  dat$ctmax <- length(ct$mean)
+  dat$ct_inf_mean <- ct$mean
+  dat$ct_inf_sd <- ct$sd
   dat$ut <- dat$t + dat$ctmax
-  
+
   # gaussian process parameters
   dat$M <- ceiling(dat$ut * gp_m)
   dat$L <- 2

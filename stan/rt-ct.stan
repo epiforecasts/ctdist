@@ -6,11 +6,11 @@ functions {
 }
 
 data {
-  int N; // number of ct samples
+  int n; // number of ct samples
   int t; // time considered
   int ut; // time considered + ctmax
-  int tt[N]; // time each sample taken
-  real ct[N]; // count with ct value 
+  int tt[n]; // time each sample taken
+  real ct[n]; // count with ct value 
   real dt; // detection threshold
   real overall_prob; // overall probability of infection
   int ctmax; // maximum number of days post infection considered for ct values
@@ -29,7 +29,7 @@ transformed data {
   // set up approximate gaussian process
   matrix[ut, M] PHI = setup_gp(M, L, ut);  
   // calculate log density for each observed ct and day since infection
-  vector[ctmax] ctlgd[N] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd);
+  vector[ctmax] ctlgd[n] = ct_log_dens(ct, ct_inf_mean, ct_inf_sd);
   // calculate log of probability CT below threshold
   vector[ctmax] ldtp = ct_threshold_prob(dt, ct_inf_mean, ct_inf_sd);
 }
@@ -47,7 +47,7 @@ transformed parameters {
   gp = update_gp(PHI, M, L, alpha, rho, eta, 0);
   // relative probability of infection
   prob_inf = inv_logit(gp);
-  prob_inf = prob_inf / sum(prob_inf);
+  prob_inf = prob_inf ./ sum(prob_inf);
   prob_inf = overall_prob * prob_inf;
 }
 
@@ -59,13 +59,13 @@ model {
   alpha ~ normal(0, 1);
   eta ~ std_normal();
   // relative log probability of infection for each t
-  lrit = rel_inf_prob(prob_inf, ctmax, ut);
+  lrit = rel_inf_prob(prob_inf, ldtp, ctmax, ut);
   // log prob of detection for each t
-  ldtpt = rel_threshold_prob(ldtp, lrit, t, ctmax);
+  ldtpt = rel_threshold_prob(lrit, t);
   // update likelihood (in parallel)
-  target += reduce_sum(ct_loglik, ct, 1, tt, lrit, ctlgd, ldtpt, ctmax);
+  target += reduce_sum(ct_loglik, ct, 1, tt, lrit, ctlgd, ldtpt);
   // if using rstan/no reduce_sum comment out above and use below instead
-  //target += ct_loglik(ct, 1, N, tt, lrit, ctlgd, ldtpt, ctmax);
+  //target += ct_loglik(ct, 1, n, tt, lrit, ctlgd, ldtpt);
 }
 
 generated quantities {
