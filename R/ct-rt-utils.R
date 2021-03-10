@@ -16,7 +16,7 @@ stan_data <- function(obs, load_vec = "p2ch1cq", overall_prob = 1,
   dat$n <- nrow(obs)
   dat$t <- max(obs$time)
   dat$tt <- obs$time
-  dat$ct <- obs[["p2ch1cq"]]
+  dat$ct <- obs[[load_vec]]
   dat$dt <- dt
 
   # overall probability scaling factor
