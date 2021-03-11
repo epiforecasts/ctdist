@@ -36,8 +36,8 @@ ep_raw_vacc <- ep_raw_vacc[samples, ]
 min_date <- min(ep_raw_vacc$date_specimen, na.rm = TRUE)
 
 # define CT post infection (loosely inspired by Hay et al)
-ct <- tibble(mean = c(40 - 0:4*5, 18 + 0:10*2),
-             sd = c(rep(1, 5), rep(2, 11)))
+ct <- tibble(mean = c(rep(0, 5), 18 + 0:10*2),
+             sd = c(rep(0.1, 5), rep(2, 11)))
 
 # define observations
 dat <- stan_data(ep_raw_vacc, 
