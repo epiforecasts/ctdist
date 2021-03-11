@@ -96,7 +96,7 @@ p_dat <- ggplot(obs_dat_all) +
 ## END OF PILLAGED CODE ##
 
 obs_dat_all <- as.data.table(obs_dat_all)
-obs_dat_all <- obs_dat_all[, time := date - min(date) + 1]
+obs_dat_all <- obs_dat_all[, time := as.numeric(date - min(date) + 1)]
 
 min_date <- min(obs_dat_all$date, na.rm = TRUE)
 
@@ -112,7 +112,7 @@ dat <- stan_data(obs_dat_all,
                  dt = 43,
                  gt = get_generation_time(
                    disease = "SARS-CoV-2", source = "ganyani", max = 15
-                 ), gp_m = 0.1, gp_ls = c(7, NA)
+                 ), gp_m = 0.1, gp_ls = c(7, 28)
 )
 
 # Load model --------------------------------------------------------------
