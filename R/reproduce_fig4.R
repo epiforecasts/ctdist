@@ -95,10 +95,8 @@ p_dat <- ggplot(obs_dat_all) +
 
 ## END OF PILLAGED CODE ##
 
-obs_dat_all$time <- obs_dat_all %>%
-  group_indices(date)
-
 obs_dat_all <- as.data.table(obs_dat_all)
+obs_dat_all <- obs_dat_all[, time := date - min(date) + 1]
 
 min_date <- min(obs_dat_all$date, na.rm = TRUE)
 
