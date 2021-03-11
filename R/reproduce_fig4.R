@@ -10,6 +10,8 @@ library(lubridate)
 library(ggplot2)
 color_scheme_set("brightblue")
 
+# missing packages
+library(readr)
 
 # Source utilities --------------------------------------------------------
 source(here("R", "ct-rt-utils.R"))
@@ -97,12 +99,13 @@ obs_dat_all$time <- obs_dat_all %>%
   group_indices(date)
 
 obs_dat_all <- as.data.table(obs_dat_all)
+obs_dat_all <- obs_dat_all[ct < 30]
 
 min_date <- min(obs_dat_all$date, na.rm = TRUE)
 
 # define CT post infection (loosely inspired by Hay et al)
-ct <- tibble(mean = c(40 - 0:4*5, 18 + 0:10*2),
-             sd = c(rep(1, 5), rep(2, 11)))
+ct <- tibble(mean = c(rep(0, 5), 18 + 0:10*2),
+             sd = c(rep(0.1, 5), rep(2, 11)))
 
 # define observations
 dat <- stan_data(obs_dat_all, 
